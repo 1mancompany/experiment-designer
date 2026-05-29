@@ -338,10 +338,139 @@ Save to `stage5_assignments.md`. Format:
 
 ---
 
-## Phase 9: Submit
+## Phase 9: Pin Upstream Codebase (do NOT skip)
+
+**Why this phase exists.** Producers who tell the Stage 6 code-writer
+"implement the experiment from scratch" consistently ship buggy
+extraction / scoring pipelines (e.g. regex-only parsers that drop 45%
+of CoT outputs, mismatched majority-vote tie-breakers, off-by-one
+sample-size accounting). The literature you cited in Stage 2 has
+**already solved most of these problems**. Reuse, don't reinvent.
+
+Your job in this phase: pick the closest existing codebase from the
+Stage 2 literature, pin a commit, list the **exact** files/lines you
+will change, and surface license + attribution. Stage 6 will then
+`git clone --depth 1` that commit and apply your minimal patch set
+instead of writing from scratch.
+
+### Step 9.1 — Scan Stage 2 references for code repos
+
+For each Stage 2 reference, look up its code release:
+
+- arxiv abstract page → "Code" link
+- paperswithcode.com → official + community implementations
+- GitHub search by paper title (e.g. `gsm8k chain-of-thought`)
+- For well-known benchmarks, prefer canonical implementations:
+  GSM8K → `openai/simple-evals` or `EleutherAI/lm-evaluation-harness`;
+  MATH → `hendrycks/math`;
+  BIG-Bench → `google/BIG-bench`;
+  HumanEval → `openai/human-eval`.
+
+### Step 9.2 — Score candidates on fit + safety
+
+| Dimension | Why it matters |
+|---|---|
+| **Coverage** | Does the repo already implement the dataset, the metric, and the answer-extraction pipeline you need? |
+| **Model family** | Does it ship a wrapper for the model class you're using (HF transformers, vLLM, OpenAI API)? |
+| **Test coverage** | Are there unit tests / golden-output fixtures we can run to validate our patch didn't break scoring? |
+| **License** | MIT / Apache-2.0 / BSD ✅. GPL / AGPL ❌ (incompatible with most paper-code releases). No license ❌ (treat as proprietary). |
+| **Last-touch recency** | Repos last updated < 12 months are likely to install cleanly. Older repos need dependency pins or may be deprecated. |
+| **Stars / forks** | Soft signal of community trust — useful when two candidates tie. |
+
+### Step 9.3 — Produce `stage5_codebase_pin.md`
+
+Write a short pin document the Stage 6 code-writer will consume verbatim:
+
+```markdown
+# Stage 5 — Upstream Codebase Pin
+
+## Primary upstream
+- Repository: https://github.com/openai/simple-evals
+- Commit: abc1234deadbeef  (pin a specific SHA, NOT `main`)
+- License: MIT
+- Test command: `python -m pytest tests/` (must pass before any patch)
+
+## Why this repo
+One sentence on why this is the best fit (coverage + tests + license).
+
+## Adaptation surface (what we change, with exact paths)
+
+| File | Change | Reason | Estimated LOC |
+|------|--------|--------|---------------|
+| `simple_evals/gsm8k_eval.py` | Add `Qwen2.5-7B-Instruct` via vLLM client | Stage 5 requires open-weight model | 10 |
+| `simple_evals/gsm8k_eval.py` | Add `--aggregation pass_at_k` flag + rule-based verifier | H1 primary contrast | 50 |
+| `simple_evals/prompts/gsm8k_*.py` | Add 4 locked prompt templates (direct, zero-shot CoT, 2-shot CoT, 3-shot CoT) | Stage 5 §4.2 | 20 |
+| `requirements.txt` | Pin `vllm==0.6.x`, `transformers==4.45.x` | Reproducibility | 2 |
+
+**Total adaptation surface: ~82 LOC across 3 files.**
+Files NOT to touch (use as-is): the answer extractor in
+`simple_evals/common.py` (already battle-tested on GSM8K) and the
+scoring loop in `simple_evals/gsm8k_eval.py`.
+
+## Vendoring policy
+
+Stage 6 will:
+1. `git clone --depth 1 --branch <pinned_commit_sha>` into the project workspace.
+2. Keep the original `LICENSE` file at the repo root.
+3. Add `CITATION.md` linking back to the upstream repo + paper.
+4. Apply the patches above as a separate commit so reviewers can `git
+   diff <pinned_commit> HEAD` to see exactly what we changed.
+
+## Fallback
+
+If `openai/simple-evals` install fails on the remote infra (e.g. python
+3.9 incompatibility), the secondary pin is
+`EleutherAI/lm-evaluation-harness` commit `xxxxxxx` (Apache-2.0). If
+both fail, escalate via `submit_result(status: error)` — do NOT silently
+fall back to "writing from scratch", because that is the failure mode
+this phase exists to prevent.
+```
+
+### Step 9.4 — Add the upstream-pin to `stage5_assignments.md`
+
+Add T0 as the first row of the assignments table:
+
+| Task ID | Description | Skill | Assignee | Acceptance |
+|---|---|---|---|---|
+| **T0** | Clone upstream `<repo>@<commit>`, run its test suite (must pass), apply patch set from `stage5_codebase_pin.md`, commit patches separately | `code_implementer` | <code-writer name> | Upstream tests pass before patch + after patch; patch diff matches Step 9.3 file list |
+
+This is now the **first** task Stage 6 executes — no implementation
+work happens until T0 is green.
+
+### When the literature has NO usable code
+
+If every Stage 2 reference has either no code release or an
+incompatible license, document this explicitly in
+`stage5_codebase_pin.md`:
+
+```markdown
+# Stage 5 — Upstream Codebase Pin
+
+## NO USABLE UPSTREAM FOUND
+
+Searched Stage 2 references X, Y, Z. Code status:
+- X: no release
+- Y: GPL-3.0 (incompatible)
+- Z: archived 4 years ago, deps don't resolve
+
+## Implication
+
+Stage 6 must write from scratch. The Stage 5 critic should treat this
+as a higher-risk path and require the code-writer to **explicitly
+include the three-stage locked extractor** (regex → SymPy → LLM judge)
+with unit tests covering at least 100 hand-graded examples before
+running the pilot.
+```
+
+The critic will flag a from-scratch implementation that lacks the
+3-stage extractor + 100-example fixture as D-CODEBASE FAIL.
+
+---
+
+## Phase 10: Submit
 
 ```python
-submit_result(summary="Experiment plan v2: cluster RCT across 3 companies × 8 weeks, n_clusters=8, MDE=0.3 SD. See stage5_experiment_designer.md + stage5_assignments.md (7 tasks). Transcript: stage5_debate_transcript.md. 4 participants, X rounds, consensus on procedure.")
+submit_result(summary="Experiment plan v2: cluster RCT across 3 companies × 8 weeks, n_clusters=8, MDE=0.3 SD. See stage5_experiment_designer.md + stage5_assignments.md (7 tasks). Upstream pin: stage5_codebase_pin.md (openai/simple-evals@abc1234, ~82 LOC patch). Transcript: stage5_debate_transcript.md. 4 participants, X rounds, consensus on procedure.")
 ```
 
 If the critic rejects, the rejection names failing dimensions (D1-D10):
