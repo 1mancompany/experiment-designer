@@ -204,9 +204,18 @@ hit them.
 ### The 10 required sections — CCF-A criteria per section
 
 #### 1. Experiment Objective (≤ 1 paragraph)
-- ✅ One sentence naming the hypothesis (H1 from methodology) under test.
-- ✅ Single experiment, single objective — don't smuggle in secondary studies.
+- ✅ Name the primary hypothesis (H1 from methodology) under test.
+- ✅ Name the Empirical Claims List from Stage 4 by reference
+  (e.g. "this plan produces data for claims C1–Cn from Stage 4").
+- ✅ The plan tests **whatever claims Stage 4 listed**, no more, no
+  fewer. If Stage 4 listed C1–C5, this plan has 5 sub-experiments in
+  Section 3 (one per claim). If Stage 4 listed only C1, this plan
+  has 1 sub-experiment. The Empirical Claims List drives the
+  cardinality of Section 3 — do not invent extra studies, and do not
+  silently drop a claim.
 - ❌ "We will explore …" without a falsifiable test.
+- ❌ Sub-experiment count diverges from Stage 4's claim count without
+  an explicit justification in this section.
 
 #### 2. Variables & Operationalization
 - ✅ Each variable defined with measurement procedure
@@ -214,12 +223,28 @@ hit them.
 - ✅ Notation table when math is used.
 - ❌ Vague constructs ("review quality") without operationalisation.
 
-#### 3. Experimental Procedure
-- ✅ Step-by-step, chronological, executable by a competent engineer.
-- ✅ Randomisation procedure spelled out.
-- ✅ Treatment manipulation specified concretely (what does the LLM-assisted reviewer see vs human-only?).
+#### 3. Experimental Procedure — one Sub-Experiment per Empirical Claim
+- ✅ For each Empirical Claim `Ci` in Stage 4's Empirical Claims
+  List, produce **one labelled Sub-Experiment** in this section:
+  ```
+  ### Sub-Experiment <i> — backs Claim C<i>
+  - **Claim under test**: <quote C<i> verbatim from Stage 4>
+  - **IVs / conditions**: ...
+  - **DVs / metrics**: ...
+  - **Procedure**: step-by-step ...
+  - **Cell / replicate count**: ...
+  ```
+  No fixed minimum or maximum — the count matches the claims count.
+  A paper with 1 claim has 1 sub-experiment; a paper with 7 claims
+  has 7.
+- ✅ Each Sub-Experiment is **executable on its own** — a 6a code-writer
+  could pick one row of the assignments table and run that
+  Sub-Experiment without reading the others.
+- ✅ Randomisation procedure spelled out (per Sub-Experiment if they differ).
+- ✅ Treatment manipulation specified concretely (what does the treated unit see vs control?).
 - ✅ Blinding / counterbalancing if applicable.
 - ❌ "We will randomise and measure" — that's not a procedure.
+- ❌ Missing the per-claim split — burying all claims into one giant procedure means Stage 6 can't dispatch them, and Stage 7 can't analyse them claim-by-claim.
 
 #### 4. Evaluation Metrics
 - ✅ Singular primary metric (one number that decides PASS/FAIL of H1).
