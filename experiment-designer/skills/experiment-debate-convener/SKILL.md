@@ -95,7 +95,7 @@ about procedure feasibility.
 Before convening the debate, write a concrete first draft. The debate will
 attack *this draft*, not the experiment in the abstract.
 
-Cover all 10 required sections (see Phase 7 for the full CCF-A criteria),
+Cover all 11 required sections (see Phase 7 for the full CCF-A criteria),
 at draft quality (~10 minutes of work). Save to
 `stage5_experiment_v1_draft.md`. **English only.**
 
