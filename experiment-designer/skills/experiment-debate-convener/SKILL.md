@@ -201,7 +201,7 @@ You have a v1 draft + transcript. Now produce
 (`experiment-quality-critic` skill) grades against 10 dimensions; write to
 hit them.
 
-### The 10 required sections — CCF-A criteria per section
+### The 11 required sections — CCF-A criteria per section
 
 #### 1. Experiment Objective (≤ 1 paragraph)
 - ✅ Name the primary hypothesis (H1 from methodology) under test.
@@ -288,6 +288,32 @@ hit them.
 #### 10. Citation of the Debate
 - ✅ At least 2 places where a procedural decision quotes/paraphrases a named participant from the transcript.
 - ❌ Decisions appear without grounding in the transcript.
+
+#### 11. Feasibility-first design, baselines, ablations & figure manifest
+The Stage 5 critic gates this. Design in **two explicitly-labelled tiers**
+and lock the supporting structure so the study is both runnable and
+publishable:
+- ✅ **Tier 1 — Feasibility** (cheap, runs FIRST): the smallest setup that
+  shows whether the core hypothesis has signal — simple/ready-made
+  dataset, minimal config, one/few seeds, one primary metric, NO baseline
+  matrix, NO ablation. State an explicit go/no-go decision rule (signal /
+  effect-size threshold) for advancing to the full study.
+- ✅ **Tier 2 — Full** (rigorous, gated on the Tier-1 signal): a
+  field-standard benchmark, **baseline layers** (sanity / naive / SOTA /
+  ablated-self), **one ablation per claimed contribution**, a
+  **hyperparameter plan** (which are locked, which are swept, which are
+  sensitivity-only), and **seeds ≥ 3 reporting the median**.
+- ✅ **Figure manifest** — a locked table: each figure/table → the claim
+  it answers → the RESULT_JSON field it draws from → the plot type. Stage
+  6 dumps those fields; Stage 7 plots them. Without it the result figures
+  cannot be produced downstream.
+- ✅ **Budget-bound**: a total compute estimate, and a design that can
+  actually finish within it. (Run a0aee5044ce2 pre-registered 26 models
+  but trained 2 — every ablation BLOCKED, paper rested on n=1.)
+- ❌ No feasibility tier / no go-no-go rule → REJECT.
+- ❌ Full study missing baseline layers, per-claim ablation, the
+  hyperparameter plan, or seeds ≥ 3 → REJECT.
+- ❌ No figure manifest, or a design not budget-bound → REJECT.
 
 ### Writing-style rules (D9 in critic — bake in here)
 
